@@ -243,7 +243,7 @@ class Properties(MutableMapping, object):
     # Which characters do we treat as whitespace?
     _ALLWHITESPACE = _EOL + _WHITESPACE
 
-    def __init__(self, process_escapes_in_values=True, *args, **kwargs):
+    def __init__(self, process_escapes_in_values=True, only_escape_rntf=False, *args, **kwargs):
         """
         Create a new property file parser.
 
@@ -257,6 +257,7 @@ class Properties(MutableMapping, object):
         super(Properties, self).__init__(*args, **kwargs)
 
         self._process_escapes_in_values = process_escapes_in_values
+        self._only_escape_rntf = only_escape_rntf
 
         # Initialize parser state.
         self.reset()
@@ -556,6 +557,10 @@ class Properties(MutableMapping, object):
         if escaped_char in "rntf":
             # \r, \n, \t or \f.
             return eval(r"u'\%s'" % escaped_char)
+
+        if self._only_escape_rntf:
+            # We are not allowed to escape other characters, so just return the escaped character.
+            return "\\" + escaped_char
 
         if escaped_char == "u":
             # Unicode escape: \uXXXX.
